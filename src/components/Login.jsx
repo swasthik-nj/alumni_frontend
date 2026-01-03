@@ -22,7 +22,7 @@ export default function Login() {
     setLoading(true);
     try {
       // Use api helper instead of axios directly
-      const { data } = await api.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/login`, form);
+      const { data } = await api.post(`${import.meta.env.VITE_BACKEND_URL}api/v1/auth/login`, form);
 
       // Backend should return token and optionally user data
       const token = data?.token || data?.data?.token;
