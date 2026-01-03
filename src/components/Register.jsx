@@ -31,8 +31,7 @@ export default function Register() {
     setError("");
         try {
       const res = await axios.post(
-        "http://localhost:3001/api/v1/auth/register",
-        form
+        `${import.meta.env.VITE_BACKEND_URL}api/v1/auth/register`, form
       );
       setMessage(res.data.message);
       setTimeout(() => {
