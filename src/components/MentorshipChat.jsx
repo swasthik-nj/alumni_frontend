@@ -38,10 +38,15 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
   const [messages, setMessages] = useState([]);
   const [mentorshipInfo, setMentorshipInfo] = useState(null);
   const [inputText, setInputText] = useState("");
+  const [isPeerTyping, setIsPeerTyping] = useState(false);
+  const [peerTypingName, setPeerTypingName] = useState("");
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [showResourceModal, setShowResourceModal] = useState(false);
+
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const isTypingEmittedRef = useRef(false);
 
   const isModalMode = Boolean(onClose);
   const currentUserId = String(user?._id || user?.id || "");
@@ -58,6 +63,10 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
       if (res?.data?.data) {
         setMentorshipInfo(res.data.data.mentorshipRequest);
         setMessages(res.data.data.messages || []);
+        setIsPeerTyping(Boolean(res.data.data.isTyping));
+        if (res.data.data.typingUser) {
+          setPeerTypingName(res.data.data.typingUser);
+        }
       }
     } catch (err) {
       console.error("Failed to load conversation:", err);
@@ -72,21 +81,50 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
   useEffect(() => {
     fetchConversation();
 
-    // Start real-time polling every 4 seconds
+    // Real-time polling every 2.5 seconds for messages and typing indicators
     pollIntervalRef.current = setInterval(() => {
       fetchConversation(true);
-    }, 4000);
+    }, 2500);
 
     return () => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      // Reset typing on unmount
+      if (requestId && isTypingEmittedRef.current) {
+        api.post(`/api/v1/messages/request/${requestId}/typing`, { isTyping: false }).catch(() => {});
       }
     };
   }, [requestId]);
 
   useEffect(() => {
     scrollToBottom(loading ? "auto" : "smooth");
-  }, [messages.length]);
+  }, [messages.length, isPeerTyping]);
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputText(val);
+
+    if (val.trim()) {
+      if (!isTypingEmittedRef.current) {
+        isTypingEmittedRef.current = true;
+        api.post(`/api/v1/messages/request/${requestId}/typing`, { isTyping: true }).catch(() => {});
+      }
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        isTypingEmittedRef.current = false;
+        api.post(`/api/v1/messages/request/${requestId}/typing`, { isTyping: false }).catch(() => {});
+      }, 3000);
+    } else {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      isTypingEmittedRef.current = false;
+      api.post(`/api/v1/messages/request/${requestId}/typing`, { isTyping: false }).catch(() => {});
+    }
+  };
 
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
@@ -95,6 +133,11 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
     const textToSend = inputText.trim();
     setInputText("");
     setSending(true);
+
+    // Stop typing state immediately
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    isTypingEmittedRef.current = false;
+    api.post(`/api/v1/messages/request/${requestId}/typing`, { isTyping: false }).catch(() => {});
 
     try {
       const res = await api.post("/api/v1/messages", {
@@ -137,6 +180,12 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
       .join("")
       .slice(0, 2)
       .toUpperCase();
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const chatContent = (
@@ -218,44 +267,97 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
         ) : (
           messages.map((msg, index) => {
             const isMe = String(msg.sender?._id || msg.sender) === currentUserId;
-            return (
-              <div
-                key={msg._id || index}
-                className={`flex gap-2.5 ${isMe ? "justify-end" : "justify-start"}`}
-              >
-                {!isMe && (
-                  <Avatar className="h-7 w-7 mt-1 shrink-0">
-                    <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">
-                      {getInitials(msg.senderName || partnerName)}
+            const senderName = isMe ? (user?.name || user?.username || "You") : (msg.senderName || partnerName);
+            const timeStr = formatTime(msg.createdAt);
+
+            if (isMe) {
+              return (
+                <div key={msg._id || index} className="flex items-start justify-end gap-2.5">
+                  <div className="flex flex-col items-end gap-1 w-full max-w-[320px] sm:max-w-[460px]">
+                    {/* Header: Name and Time */}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-semibold text-foreground">You</span>
+                      <span className="text-[11px] font-normal text-muted-foreground">{timeStr}</span>
+                    </div>
+
+                    {/* Speech Bubble */}
+                    <div className="flex flex-col leading-relaxed p-3.5 bg-primary text-primary-foreground rounded-2xl rounded-tr-none shadow-xs text-sm">
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+
+                    {/* Footer: Seen / Delivered Status */}
+                    <div className="flex items-center gap-1 text-[11px] font-normal text-muted-foreground">
+                      <span>{msg.isRead ? `Seen at ${formatTime(msg.readAt || msg.createdAt)}` : "Delivered"}</span>
+                      {msg.isRead ? (
+                        <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Avatar Right */}
+                  <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1">
+                    <AvatarFallback className="bg-primary/20 text-primary font-semibold text-xs">
+                      {getInitials(user?.name || user?.username || "You")}
                     </AvatarFallback>
                   </Avatar>
-                )}
+                </div>
+              );
+            }
 
-                <div
-                  className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed ${
-                    isMe
-                      ? "bg-primary text-primary-foreground rounded-tr-xs"
-                      : "bg-muted/70 text-foreground border border-border/50 rounded-tl-xs"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
-                  <div
-                    className={`flex items-center justify-end gap-1 text-[9px] mt-1 ${
-                      isMe ? "text-primary-foreground/75" : "text-muted-foreground"
-                    }`}
-                  >
-                    <span>
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                    {isMe && <CheckCheck className="w-3 h-3" />}
+            return (
+              <div key={msg._id || index} className="flex items-start gap-2.5">
+                {/* Avatar Left */}
+                <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1">
+                  <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xs">
+                    {getInitials(senderName)}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="flex flex-col gap-1 w-full max-w-[320px] sm:max-w-[460px]">
+                  {/* Header: Name and Time */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-semibold text-foreground">{senderName}</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">{timeStr}</span>
                   </div>
+
+                  {/* Speech Bubble */}
+                  <div className="flex flex-col leading-relaxed p-3.5 border border-border/70 bg-card rounded-2xl rounded-tl-none text-foreground shadow-xs text-sm">
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+
+                  {/* Footer: Status */}
+                  <span className="text-[11px] font-normal text-muted-foreground">Delivered</span>
                 </div>
               </div>
             );
           })
+        )}
+
+        {/* Real-time Typing Indicator */}
+        {isPeerTyping && (
+          <div className="flex items-start gap-2.5 animate-fadeIn">
+            <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                {getInitials(peerTypingName || partnerName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-1 max-w-[320px]">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-semibold text-foreground">{peerTypingName || partnerName}</span>
+                <span className="text-[11px] text-primary font-medium">typing...</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-4 py-3 bg-card border border-border/70 rounded-2xl rounded-tl-none shadow-xs w-fit">
+                <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+              <span className="text-[11px] text-muted-foreground italic">
+                {peerTypingName || partnerName} is typing a message...
+              </span>
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -266,7 +368,7 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
           <input
             type="text"
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={`Message ${partnerName}... (Press Enter to send)`}
             className="flex-1 rounded-xl border border-border bg-background py-2.5 px-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring"

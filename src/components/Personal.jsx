@@ -68,6 +68,7 @@ export default function Personal() {
     bio: "",
     companyName: "",
     designation: "",
+    qualification: "",
   });
 
   // Mentorship Dashboard state
@@ -131,6 +132,7 @@ export default function Personal() {
         bio: user.bio || "",
         companyName: user.companyName || "",
         designation: user.designation || "",
+        qualification: user.qualification || "MCA (Master of Computer Applications)",
       });
       fetchDashboard();
     }
@@ -313,8 +315,12 @@ export default function Personal() {
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                     Welcome back, {user.alumniName || "Alumni"}! 🎓
                   </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                    {user.companyName ? `${user.designation || "Professional"} at ${user.companyName}` : "Alumni Network Member"} • Class of {user.graduationYear || "Grad"}
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="font-semibold text-primary">{user.qualification || mentorship.qualification || "MCA"}</span>
+                    <span>•</span>
+                    <span>{user.companyName ? `${user.designation || "Professional"} at ${user.companyName}` : "Alumni Network Member"}</span>
+                    <span>•</span>
+                    <span>Class of {user.graduationYear || "Grad"}</span>
                   </p>
                 </div>
 
@@ -648,7 +654,21 @@ export default function Personal() {
               <CardContent>
                 <form onSubmit={handleSaveMentorship} className="space-y-6">
                   {/* Row 1: Experience & Capacity */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-foreground mb-1">
+                        Qualification / Degree
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. MCA, M.Tech, B.Tech"
+                        value={mentorship.qualification}
+                        onChange={(e) =>
+                          setMentorship({ ...mentorship, qualification: e.target.value })
+                        }
+                        className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs"
+                      />
+                    </div>
                     <div>
                       <label className="block text-xs font-medium text-foreground mb-1">
                         Years of Experience

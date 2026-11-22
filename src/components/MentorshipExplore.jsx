@@ -23,6 +23,7 @@ import {
   Send,
   MessageSquare,
   ShieldCheck,
+  Mail,
 } from "lucide-react";
 import api from "../utils/api";
 import { AuthContext } from "../contexts/AuthContext";
@@ -123,10 +124,21 @@ export default function MentorshipExplore() {
   }, [selectedDomain, searchQuery]);
 
   const handleOpenRequestModal = (mentorItem) => {
+    const rawDomains = mentorItem.alumni.mentorshipDomains;
+    const domains =
+      Array.isArray(rawDomains) && rawDomains.length > 0
+        ? rawDomains
+        : [
+            mentorItem.alumni.designation || "System Design",
+            "Full Stack Development",
+            "Cloud Computing & AWS",
+            "Career Guidance & Mentorship",
+          ];
+    const initialDomain = domains[0];
     setTargetMentor(mentorItem);
-    setRequestDomain(mentorItem.alumni.mentorshipDomains?.[0] || "General Guidance");
+    setRequestDomain(initialDomain);
     setRequestMessage(
-      `Hello ${mentorItem.alumni.alumniName}, I would love your guidance on ${mentorItem.alumni.mentorshipDomains?.[0] || "career development"} and preparing for technical roles in the industry.`
+      `Hello ${mentorItem.alumni.alumniName}, I would love your guidance on ${initialDomain} and preparing for technical roles in the industry.`
     );
     setShowRequestModal(true);
   };
@@ -207,12 +219,25 @@ export default function MentorshipExplore() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button asChild size="sm" variant="outline">
-              <Link to="/mentorship/requests">My Requests Pipeline</Link>
-            </Button>
-            <Button asChild size="sm" className="bg-primary text-primary-foreground">
-              <Link to="/student/profile">Update Skills & Goals</Link>
-            </Button>
+            {isStudent ? (
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/mentorship/requests">My Requests Pipeline</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-primary text-primary-foreground">
+                  <Link to="/student/profile">Update Skills & Goals</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/personal">Alumni Dashboard</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-primary text-primary-foreground">
+                  <Link to="/personal">Mentor Settings</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -297,10 +322,12 @@ export default function MentorshipExplore() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedMentors.map((item) => {
-                const alumni = item.alumni;
-                const score = item.matchingScore || 80;
+                const alumni = item.alumni || item;
+                const score = item.matchScore || item.matchingScore || 80;
                 const reqStatus = myRequestsMap[String(alumni._id)];
-                const isAtCapacity = (alumni.availableCapacity || 0) <= 0;
+                const availableSlots = item.remainingCapacity ?? item.availableCapacity ?? alumni.availableCapacity ?? (alumni.maxMentees || 3);
+                const activeCount = item.activeMenteesCount ?? alumni.activeMenteesCount ?? 0;
+                const isAtCapacity = availableSlots <= 0;
 
                 return (
                   <Card
@@ -355,7 +382,7 @@ export default function MentorshipExplore() {
                           {alumni.yearsOfExperience ? `${alumni.yearsOfExperience} yrs exp` : "Alumni Mentor"} • Class of {alumni.graduationYear || "Grad"}
                         </span>
                         <span className={isAtCapacity ? "text-amber-500 font-medium" : "text-emerald-600 dark:text-emerald-400 font-medium"}>
-                          {isAtCapacity ? "At Full Capacity" : `${alumni.availableCapacity || 1} slots open`}
+                          {isAtCapacity ? "At Full Capacity" : `${availableSlots} slots open`}
                         </span>
                       </div>
 
@@ -379,7 +406,17 @@ export default function MentorshipExplore() {
                     </CardContent>
 
                     <CardFooter className="pt-3 border-t border-border/40">
-                      {reqStatus === "ACCEPTED" ? (
+                      {String(alumni._id) === String(user?._id || user?.id) ? (
+                        <Badge variant="outline" className="w-full justify-center py-2 text-xs bg-muted/30">
+                          Your Mentor Profile
+                        </Badge>
+                      ) : !isStudent ? (
+                        <Button asChild size="sm" variant="outline" className="w-full text-xs gap-1.5">
+                          <a href={`mailto:${alumni.email}`}>
+                            <Mail className="w-3.5 h-3.5" /> Contact Fellow Mentor
+                          </a>
+                        </Button>
+                      ) : reqStatus === "ACCEPTED" ? (
                         <Button asChild size="sm" variant="outline" className="w-full text-xs gap-1.5 text-emerald-600">
                           <Link to="/student/mentorship-dashboard">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Active Mentor (Go to Chat)
@@ -435,10 +472,28 @@ export default function MentorshipExplore() {
                 </label>
                 <select
                   value={requestDomain}
-                  onChange={(e) => setRequestDomain(e.target.value)}
+                  onChange={(e) => {
+                    const newDomain = e.target.value;
+                    setRequestDomain(newDomain);
+                    if (targetMentor) {
+                      setRequestMessage(
+                        `Hello ${targetMentor.alumni.alumniName}, I would love your guidance on ${newDomain} and preparing for technical roles in the industry.`
+                      );
+                    }
+                  }}
                   className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs text-foreground focus:ring-2 focus:ring-ring"
                 >
-                  {(targetMentor.alumni.mentorshipDomains || ["General Career Guidance"]).map((d) => (
+                  {(
+                    Array.isArray(targetMentor.alumni.mentorshipDomains) &&
+                    targetMentor.alumni.mentorshipDomains.length > 0
+                      ? targetMentor.alumni.mentorshipDomains
+                      : [
+                          targetMentor.alumni.designation || "System Design",
+                          "Full Stack Development",
+                          "Cloud Computing & AWS",
+                          "Career Guidance & Mentorship",
+                        ]
+                  ).map((d) => (
                     <option key={d} value={d}>
                       {d}
                     </option>

@@ -110,7 +110,7 @@ export default function Directory() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search by name, company, or designation..."
+                  placeholder="Search by name, company, qualification, or designation..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 border border-border rounded-lg bg-background text-xs text-foreground placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-ring"
@@ -193,9 +193,11 @@ export default function Directory() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="space-y-0.5 flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground text-sm truncate">
-                          {item.alumniName}
-                        </h3>
+                        <div className="flex items-center justify-between gap-1">
+                          <h3 className="font-semibold text-foreground text-sm truncate">
+                            {item.alumniName}
+                          </h3>
+                        </div>
                         <p className="text-xs text-muted-foreground truncate">
                           {item.designation || "Professional"}
                         </p>
@@ -208,11 +210,17 @@ export default function Directory() {
 
                   <CardContent className="space-y-2 pt-0 text-xs text-muted-foreground">
                     <div className="flex items-center gap-2 pt-1 border-t border-border/40">
-                      <GraduationCap className="w-3.5 h-3.5 text-primary" />
-                      <span>{item.department || "Engineering"}</span>
+                      <GraduationCap className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="font-medium text-foreground truncate">
+                        {item.qualification || "MCA (Master of Computer Applications)"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <span className="truncate">{item.department || "Engineering"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                       <span>Class of {item.graduationYear || "Grad"}</span>
                     </div>
                   </CardContent>
