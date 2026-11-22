@@ -24,6 +24,7 @@ import {
 import api from "@/utils/api";
 import AdminStudentManagement from "./AdminStudentManagement";
 import AdminMentorshipAnalytics from "./AdminMentorshipAnalytics";
+import AdminAlumniManagement from "./AdminAlumniManagement";
 import Nav from "./Nav";
 import Footer from "./Footer";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -166,10 +167,10 @@ export default function Admin() {
           </div>
 
           {/* Tab Selector */}
-          <div className="flex items-center p-1 rounded-xl bg-muted border border-border/60">
+          <div className="flex items-center p-1 rounded-xl bg-muted border border-border/60 overflow-x-auto max-w-full">
             <button
               onClick={() => setActiveTab("analytics")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 activeTab === "analytics"
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -179,7 +180,7 @@ export default function Admin() {
             </button>
             <button
               onClick={() => setActiveTab("mentorship")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 activeTab === "mentorship"
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -188,8 +189,18 @@ export default function Admin() {
               Mentorship Intel
             </button>
             <button
+              onClick={() => setActiveTab("alumni")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                activeTab === "alumni"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Alumni Roster
+            </button>
+            <button
               onClick={() => setActiveTab("students")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 activeTab === "students"
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -481,7 +492,10 @@ export default function Admin() {
         {/* Tab 2: Mentorship Intelligence */}
         {activeTab === "mentorship" && <AdminMentorshipAnalytics />}
 
-        {/* Tab 3: Student Management */}
+        {/* Tab 3: Alumni Management */}
+        {activeTab === "alumni" && <AdminAlumniManagement />}
+
+        {/* Tab 4: Student Management */}
         {activeTab === "students" && <AdminStudentManagement />}
       </main>
 
