@@ -1,279 +1,312 @@
-  import * as React from "react";
-  import { Link } from "react-router-dom";
-  import { CircleCheckIcon, CircleHelpIcon, CircleIcon, Menu, X } from "lucide-react";
-  import { AuthContext } from "@/contexts/AuthContext";
+import * as React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  GraduationCap,
+  Briefcase,
+  Compass,
+  Calendar,
+  Heart,
+  Users,
+  Menu,
+  X,
+  User,
+  LogOut,
+  ChevronRight,
+  ShieldCheck,
+  MessageSquare,
+  Sparkles,
+  Trophy,
+} from "lucide-react";
+import { AuthContext } from "@/contexts/AuthContext";
+import ThemeToggle from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-  import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-  } from "@/components/ui/navigation-menu";
+export default function Nav() {
+  const { user, logout, isStudent, isAlumni } = React.useContext(AuthContext);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const location = useLocation();
 
-  import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuPortal,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger,
-  } from "@/components/ui/dropdown-menu";
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
 
-  import { Button } from "@/components/ui/button";
+  const displayName = user?.studentName || user?.alumniName || user?.name || "User";
+  const displayEmail = user?.email || "";
+  const roleLabel = isStudent ? "Student" : isAlumni ? "Alumni" : user?.role || "Member";
 
-  export default function Nav() {
-    const { user, logout, loading } = React.useContext(AuthContext);
-    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Directory", path: "/directory" },
+    { name: "Mentorship", path: "/mentorship/explore", highlight: true },
+    { name: "Events", path: "/events" },
+    { name: "Community", path: "/community" },
+    { name: "Donate", path: "/donate" },
+  ];
 
-    return (
-      <div className="bg-cyan-900/80  shadow-sm border-b py-2 sticky top-0 left-0 w-full z-30 border-green-800">
-        <div className="flex justify-between m-auto items-center w-full max-w-[170vh] h-fit px-4 py-2 ">
-          <h1 className="text-xl font-semibold shrink-0 text-lime-400">
-            Alumni <span className="text-amber-500 text-3xl">System</span>
-          </h1>
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md transition-colors">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-transform group-hover:scale-105">
+            <GraduationCap className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-base font-bold tracking-tight text-foreground flex items-center gap-1.5">
+              Alumni<span className="text-indigo-600 dark:text-indigo-400">Sphere</span>
+              <Badge variant="outline" className="hidden sm:inline-flex text-[10px] px-1.5 py-0 h-4 font-normal">
+                Platform
+              </Badge>
+            </span>
+          </div>
+        </Link>
 
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden text-yellow-200 hover:text-yellow-400 p-2 transition-transform duration-300 hover:scale-110"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 animate-in spin-in-180 duration-300" />
-            ) : (
-              <Menu className="w-6 h-6 animate-in fade-in duration-300" />
-            )}
-          </button>
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => {
+            const isActive = location.pathname === link.path;
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`relative px-3.5 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                  isActive
+                    ? "text-primary bg-primary/10 font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                {link.name}
+                {link.highlight && (
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex justify-center items-center gap-8">
-            {/* <NavigationMenu className="max-w-1/2 relative ">
-              <NavigationMenuList className="flex-wrap gap-1">
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>Home</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid  gap-2 md:w-[400px] lg:w-1xl lg:grid-cols-[.75fr_1fr]">
-                      <li className="row-span-3">
-                        <NavigationMenuLink asChild>
-                          <a
-                            className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-linear-to-b p-4 no-underline outline-hidden transition-all duration-200 select-none focus:shadow-md md:p-6"
-                            href="/"
-                          >
-                            <div className="mb-2 text-lg font-medium sm:mt-4">
-                              shadcn/ui
-                            </div>
-                            <p className="text-muted-foreground text-sm leading-tight">
-                              Beautifully designed components built with Tailwind
-                              CSS.
-                            </p>
-                          </a>
-                        </NavigationMenuLink>
-                      </li>
-                      <ListItem href="/docs" title="Introduction">
-                        Re-usable components built using Radix UI and Tailwind
-                        CSS.
-                      </ListItem>
-                      <ListItem href="/docs/installation" title="Installation">
-                        How to install dependencies and structure your app.
-                      </ListItem>
-                      <ListItem
-                        href="/docs/primitives/typography"
-                        title="Typography"
+        {/* Right Side: Theme Toggle & User Account */}
+        <div className="flex items-center gap-2.5">
+          <ThemeToggle />
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative flex items-center gap-2 px-2 py-1.5 h-auto rounded-full hover:bg-muted/80 border border-border/50"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                      {getInitials(displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden lg:flex flex-col items-start text-left pr-1">
+                    <span className="text-xs font-semibold text-foreground line-clamp-1 max-w-[120px]">
+                      {displayName}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      {roleLabel}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent className="w-64" align="end" sideOffset={8}>
+                <DropdownMenuLabel className="font-normal p-3 pb-2">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-semibold leading-none text-foreground">{displayName}</p>
+                    <p className="text-xs leading-none text-muted-foreground truncate">{displayEmail}</p>
+                    <div className="pt-1.5">
+                      <Badge
+                        variant={isStudent ? "success" : "accent"}
+                        className="text-[10px] uppercase font-bold"
                       >
-                        Styles for headings, paragraphs, lists, etc.
-                      </ListItem>
-                    </ul>
-                  </NavigationMenuContent>
-                  
-                </NavigationMenuItem>
-                
-              </NavigationMenuList>
-            </NavigationMenu> */}
-              <Link to="/" className="font-bold text-yellow-200 hover:text-yellow-400">
-                    Home
-                  </Link>
-              <Link to="/directory" className="font-bold text-yellow-200 hover:text-yellow-400" >
-                    Directory
-                  </Link>
-            
-              <Link to="/events" className="font-bold text-yellow-200 hover:text-yellow-400">
-                    Event
-                  </Link>
-             <Link to="/community" className="font-bold text-yellow-200 hover:text-yellow-400">
-                    Community
-                  </Link>
-              <Link to="/donate" className="font-bold text-yellow-200 hover:text-yellow-400">
-                    Donate
-                  </Link>
+                        {roleLabel} Account
+                      </Badge>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
 
-            <div>
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="bg-blue-300 border-blue-300">Open</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-blue-100" align="start">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuGroup>
+                <DropdownMenuGroup>
+                  {isStudent ? (
+                    <>
                       <DropdownMenuItem asChild>
-                        <Link to="/personal" className="flex justify-between">
-                          Profile
-                          <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                        <Link to="/student/mentorship-dashboard" className="flex items-center gap-2 cursor-pointer font-medium text-emerald-600 dark:text-emerald-400">
+                          <Sparkles className="h-4 w-4" />
+                          <span>Student Dashboard</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        Billing
-                        <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                      <DropdownMenuItem asChild>
+                        <Link to="/gamification" className="flex items-center gap-2 cursor-pointer font-medium text-amber-500">
+                          <Trophy className="h-4 w-4" />
+                          <span>Gamification & XP</span>
+                        </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        Settings
-                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                      <DropdownMenuItem asChild>
+                        <Link to="/student/profile" className="flex items-center gap-2 cursor-pointer">
+                          <User className="h-4 w-4" />
+                          <span>My Student Profile</span>
+                        </Link>
                       </DropdownMenuItem>
-                     </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem>Team</DropdownMenuItem>
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          Invite users
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuSubContent>
-                            <DropdownMenuItem>Email</DropdownMenuItem>
-                            <DropdownMenuItem>Message</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>More...</DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                      </DropdownMenuSub>
-                      <DropdownMenuItem>
-                        New Team
-                        <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
+                    </>
+                  ) : (
                     <DropdownMenuItem asChild>
-                      <Link to="/contact">Contact US</Link>
+                      <Link to="/personal" className="flex items-center gap-2 cursor-pointer font-medium text-indigo-600 dark:text-indigo-400">
+                        <Briefcase className="h-4 w-4" />
+                        <span>Alumni Dashboard & Profile</span>
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Button onClick={logout}>Log out</Button>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition"
-                >
-                  Login
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
+                  )}
 
-        {/* Mobile Navigation Menu */}
-        <div
-          className={`lg:hidden absolute top-full left-0 w-full bg-cyan-800 border-t border-green-800 overflow-hidden transition-all duration-800 ease-in-out shadow-lg ${
-            mobileMenuOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className={`px-4 py-4 space-y-3 transform transition-all duration-500 ${
-            mobileMenuOpen ? 'translate-y-0' : '-translate-y-4'
-          }`}>
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block font-bold text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-              >
-                Home
-              </Link>
-              <Link
-                to="/directory"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block font-bold text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-              >
-                Directory
-              </Link>
-              <Link
-                to="/events"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block font-bold text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-              >
-                Event
-              </Link>
-              <Link
-                to="/community"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block font-bold text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-              >
-                Community
-              </Link>
-              <Link
-                to="/donate"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block font-bold text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-              >
-                Donate
-              </Link>
-
-              <div className="pt-4 border-t border-green-700">
-                {user ? (
-                  <div className="space-y-2">
-                    <Link
-                      to="/personal"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-                    >
-                      Profile
+                  <DropdownMenuItem asChild>
+                    <Link to="/mentorship/requests" className="flex items-center gap-2 cursor-pointer">
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Mentorship Pipeline</span>
                     </Link>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full text-left text-yellow-200 hover:text-yellow-400 py-2 px-3 rounded hover:bg-cyan-700 transition"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/mentorship/explore" className="flex items-center gap-2 cursor-pointer">
+                      <Compass className="h-4 w-4" />
+                      <span>Discover Mentors</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>Admin Console</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+                <Link to="/login">Sign In</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs">
+                <Link to="/register">Get Started</Link>
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-border/60 bg-background/95 backdrop-blur-xl px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col space-y-1">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive
+                      ? "text-primary bg-primary/10 font-semibold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  <span>{link.name}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="pt-3 border-t border-border/60">
+            {user ? (
+              <div className="space-y-2">
+                <div className="px-3 py-2 rounded-lg bg-muted/40">
+                  <p className="text-xs text-muted-foreground">Signed in as</p>
+                  <p className="text-sm font-semibold text-foreground">{displayName}</p>
+                  <p className="text-xs text-muted-foreground">{displayEmail}</p>
+                </div>
+                {isStudent ? (
+                  <Link
+                    to="/student/mentorship-dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-medium rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  >
+                    Student Dashboard
+                  </Link>
                 ) : (
                   <Link
-                    to="/login"
+                    to="/personal"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-center bg-green-600 text-white hover:bg-green-700 rounded-lg transition"
+                    className="block px-3 py-2 text-sm font-medium rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
                   >
-                    Login
+                    Alumni Dashboard
                   </Link>
                 )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full mt-2"
+                >
+                  Sign Out
+                </Button>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Button asChild variant="outline" size="sm" onClick={() => setMobileMenuOpen(false)}>
+                  <Link to="/login">Sign In</Link>
+                </Button>
+                <Button asChild size="sm" onClick={() => setMobileMenuOpen(false)}>
+                  <Link to="/register">Register</Link>
+                </Button>
+              </div>
+            )}
           </div>
-      </div>
-    );
-  }
-
-  function ListItem({ title, children, href }) {
-    return (
-      <li>
-        <NavigationMenuLink asChild>
-          <Link to={href}>
-            <div className="text-sm leading-none font-medium">{title}</div>
-            <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-              {children}
-            </p>
-          </Link>
-        </NavigationMenuLink>
-      </li>
-    );
-  }
+        </div>
+      )}
+    </header>
+  );
+}

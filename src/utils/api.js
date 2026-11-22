@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://alumni-system-backend-vom2.onrender.com', // adjust if your backend runs on a different port
+  baseURL: import.meta.env.PROD ? 'https://alumni-system-backend-vom2.onrender.com' : 'http://localhost:3001',
   withCredentials: true, // important for cookies if using HttpOnly cookies
 });
 

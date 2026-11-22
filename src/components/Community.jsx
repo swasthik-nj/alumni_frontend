@@ -1,32 +1,38 @@
-import { useState, useEffect } from 'react';
-import api from '../utils/api';
-import { 
-  MessageSquare, 
-  Star, 
-  Calendar, 
-  Users, 
-  Send, 
+import { useState, useEffect } from "react";
+import api from "../utils/api";
+import {
+  MessageSquare,
+  Star,
+  Calendar,
+  Users,
+  Send,
   TrendingUp,
   Award,
   Clock,
   ChevronDown,
   ChevronUp,
-  Loader2
-} from 'lucide-react';
-import Nav from './Nav';
+  Loader2,
+  Sparkles,
+  MessageCircle,
+} from "lucide-react";
+import Nav from "./Nav";
+import Footer from "./Footer";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
-const Community = () => {
+export default function Community() {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [expandedSession, setExpandedSession] = useState(null);
-  
+
   // Feedback form state
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   useEffect(() => {
@@ -36,10 +42,10 @@ const Community = () => {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/v1/community/sessions');
+      const res = await api.get("/api/v1/community/sessions");
       setSessions(res?.data?.data || []);
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      console.error("Error fetching sessions:", error);
     } finally {
       setLoading(false);
     }
@@ -50,7 +56,7 @@ const Community = () => {
       const res = await api.get(`/api/v1/community/sessions/${sessionId}/feedbacks`);
       setFeedbacks(res?.data?.data || []);
     } catch (error) {
-      console.error('Error fetching feedbacks:', error);
+      console.error("Error fetching feedbacks:", error);
     }
   };
 
@@ -66,50 +72,50 @@ const Community = () => {
       fetchSessionFeedbacks(session._id);
       setShowFeedbackForm(false);
       setRating(0);
-      setComment('');
+      setComment("");
     }
   };
 
   const handleSubmitFeedback = async (e) => {
     e.preventDefault();
     if (!rating) {
-      alert('Please select a rating');
+      alert("Please select a rating");
       return;
     }
 
     try {
       setSubmitting(true);
-      await api.post('/api/v1/community/feedback', {
+      await api.post("/api/v1/community/feedback", {
         sessionId: selectedSession._id,
         feedbackRating: rating,
-        comment: comment.trim()
+        comment: comment.trim(),
       });
-      
-      alert('Feedback submitted successfully!');
+
+      alert("Feedback submitted successfully!");
       setRating(0);
-      setComment('');
+      setComment("");
       setShowFeedbackForm(false);
       fetchSessionFeedbacks(selectedSession._id);
-      fetchSessions(); // Refresh to update average ratings
+      fetchSessions();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to submit feedback');
+      alert(error.response?.data?.message || "Failed to submit feedback");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const StarRating = ({ rating: currentRating, size = 'w-5 h-5', interactive = false }) => {
+  const StarRating = ({ rating: currentRating, size = "w-4 h-4", interactive = false }) => {
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             className={`${size} ${
-              interactive ? 'cursor-pointer transition-all' : ''
+              interactive ? "cursor-pointer transition-transform hover:scale-110" : ""
             } ${
-              star <= (interactive ? (hoverRating || rating) : currentRating)
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-600'
+              star <= (interactive ? hoverRating || rating : currentRating)
+                ? "fill-amber-400 text-amber-400"
+                : "text-muted-foreground/40"
             }`}
             onClick={interactive ? () => setRating(star) : undefined}
             onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
@@ -120,239 +126,161 @@ const Community = () => {
     );
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading community sessions...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-400 via-slate-400 to-slate-500">
-      {/* Header */}
-      <Nav/>
+    <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors">
+      <Nav />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {sessions.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-            <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg">No sessions available yet</p>
+      <main className="flex-1 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8 w-full">
+        {/* Header */}
+        <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
+              <MessageCircle className="w-3.5 h-3.5" /> Campus Discussions & Experience Sharing
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              Alumni Community & Session Reviews
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
+              Explore past sessions, review community feedback, and share your learning experiences with peers.
+            </p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {sessions.map((session) => (
-              <div
-                key={session._id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden  transition-all"
-              >
-                {/* Session Card Header */}
-                <div
-                  className="p-6 cursor-pointer hover:bg-slate-900/70 transition"
-                  onClick={() => handleSessionClick(session)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white">{session.sessionName}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          session.sessionType === 'career' ? 'bg-blue-500/20 text-blue-300' :
-                          session.sessionType === 'networking' ? 'bg-green-500/20 text-green-300' :
-                          session.sessionType === 'cultural' ? 'bg-purple-500/20 text-purple-300' :
-                          'bg-gray-500/20 text-gray-300'
-                        }`}>
-                          {session.sessionType}
-                        </span>
-                      </div>
-                      
-                      {session.description && (
-                        <p className="text-gray-400 text-sm mb-3">{session.description}</p>
-                      )}
-                      
-                      <div className="flex items-center gap-6 text-sm text-gray-400">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-cyan-400" />
-                          {formatDate(session.date)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-blue-400" />
-                          {session.totalRegistrations || 0} registered
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-green-400" />
-                          {session.totalFeedbacks || 0} feedbacks
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      {session.averageRating ? (
-                        <div className="text-right">
+
+          <Badge variant="outline" className="text-xs font-normal">
+            {sessions.length} Community Sessions Recorded
+          </Badge>
+        </div>
+
+        {/* Sessions Feed */}
+        <div>
+          {loading ? (
+            <div className="py-24 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary/20 border-t-primary"></div>
+              <p className="text-muted-foreground text-xs mt-3">Loading community sessions...</p>
+            </div>
+          ) : sessions.length === 0 ? (
+            <Card className="p-12 text-center">
+              <MessageSquare className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-semibold text-foreground text-base">No Community Sessions Yet</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Sessions will appear here once campus events and workshops conclude.
+              </p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {sessions.map((session) => {
+                const isExpanded = expandedSession === session._id;
+                return (
+                  <Card key={session._id} className="hover:border-border transition-colors">
+                    <CardHeader
+                      onClick={() => handleSessionClick(session)}
+                      className="cursor-pointer pb-4"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <StarRating rating={Math.round(session.averageRating)} size="w-4 h-4" />
-                            <span className="text-yellow-400 font-bold">{session.averageRating.toFixed(1)}</span>
+                            <CardTitle className="text-base font-semibold">{session.title}</CardTitle>
+                            <Badge variant="outline" className="text-[10px]">
+                              {session.sessionType || "General"}
+                            </Badge>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Average Rating</p>
+                          <p className="text-xs text-muted-foreground">
+                            {session.description || "Session concluded."}
+                          </p>
                         </div>
-                      ) : (
-                        <div className="text-gray-500 text-sm">No ratings yet</div>
-                      )}
-                      
-                      {expandedSession === session._id ? (
-                        <ChevronUp className="w-6 h-6 text-cyan-400" />
-                      ) : (
-                        <ChevronDown className="w-6 h-6 text-gray-400" />
-                      )}
-                    </div>
-                  </div>
-                </div>
 
-                {/* Expanded Section - Feedbacks */}
-                {expandedSession === session._id && (
-                  <div className="border-t border-slate-800 bg-slate-950/50">
-                    <div className="p-6">
-                      {/* Submit Feedback Button */}
-                      {!showFeedbackForm && (
-                        <button
-                          onClick={() => setShowFeedbackForm(true)}
-                          className="w-full mb-6 py-3 px-4 bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-white font-medium transition-all flex items-center justify-center gap-2"
-                        >
-                          <Send className="w-5 h-5" />
-                          Submit Your Feedback
-                        </button>
-                      )}
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="flex items-center gap-1.5">
+                            <StarRating rating={Math.round(session.averageRating || 5)} />
+                            <span className="text-xs font-mono font-bold text-foreground">
+                              {session.averageRating ? session.averageRating.toFixed(1) : "5.0"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              ({session.feedbackCount || 0})
+                            </span>
+                          </div>
 
-                      {/* Feedback Form */}
-                      {showFeedbackForm && (
-                        <form onSubmit={handleSubmitFeedback} className="mb-6 p-6 bg-slate-900/70 rounded-xl border border-cyan-800/30">
-                          <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                            <Award className="w-5 h-5 text-cyan-400" />
-                            Share Your Experience
+                          <button className="p-1 rounded-md text-muted-foreground hover:text-foreground">
+                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    {/* Expanded Reviews & Feedback */}
+                    {isExpanded && (
+                      <CardContent className="pt-2 border-t border-border/40 space-y-4">
+                        <div className="flex items-center justify-between pt-2">
+                          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Attendee Reviews & Comments ({feedbacks.length})
                           </h4>
-                          
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Rate this session *
-                            </label>
-                            <StarRating rating={rating} size="w-8 h-8" interactive={true} />
-                            {rating > 0 && (
-                              <p className="text-sm text-cyan-400 mt-2">
-                                {rating === 1 && 'Poor'}
-                                {rating === 2 && 'Fair'}
-                                {rating === 3 && 'Good'}
-                                {rating === 4 && 'Very Good'}
-                                {rating === 5 && 'Excellent'}
-                              </p>
-                            )}
-                          </div>
-                          
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Your Comment (Optional)
-                            </label>
-                            <textarea
-                              value={comment}
-                              onChange={(e) => setComment(e.target.value)}
-                              rows={4}
-                              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                              placeholder="Share your thoughts about this session..."
-                            />
-                          </div>
-                          
-                          <div className="flex gap-3">
-                            <button
-                              type="submit"
-                              disabled={submitting}
-                              className="flex-1 py-2 px-4 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-800 rounded-lg text-white font-medium transition-all flex items-center justify-center gap-2"
-                            >
-                              {submitting ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  Submitting...
-                                </>
-                              ) : (
-                                <>
-                                  <Send className="w-4 h-4" />
-                                  Submit Feedback
-                                </>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowFeedbackForm(false);
-                                setRating(0);
-                                setComment('');
-                              }}
-                              className="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium transition"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowFeedbackForm(!showFeedbackForm)}
+                            className="text-xs h-7"
+                          >
+                            {showFeedbackForm ? "Cancel" : "Leave Review"}
+                          </Button>
+                        </div>
 
-                      {/* Feedbacks List */}
-                      <div>
-                        <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                          <MessageSquare className="w-5 h-5 text-blue-400" />
-                          Community Feedback ({feedbacks.length})
-                        </h4>
-                        
+                        {/* Review Form */}
+                        {showFeedbackForm && (
+                          <form onSubmit={handleSubmitFeedback} className="p-4 rounded-xl bg-muted/30 border border-border/40 space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium mb-1">Your Rating</label>
+                              <StarRating rating={rating} size="w-5 h-5" interactive={true} />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-1">Comment / Key Takeaway</label>
+                              <textarea
+                                rows={2}
+                                required
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="What did you learn from this session?"
+                                className="w-full rounded-lg border border-border bg-background p-2.5 text-xs focus:ring-2 focus:ring-ring"
+                              />
+                            </div>
+                            <Button type="submit" size="sm" disabled={submitting} className="bg-primary text-primary-foreground text-xs">
+                              {submitting ? "Submitting..." : "Submit Review"}
+                            </Button>
+                          </form>
+                        )}
+
+                        {/* Feedback List */}
                         {feedbacks.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p>No feedback yet. Be the first to share!</p>
-                          </div>
+                          <p className="text-xs text-muted-foreground italic py-3">
+                            No reviews submitted yet for this session.
+                          </p>
                         ) : (
-                          <div className="space-y-4 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                            {feedbacks.map((feedback) => (
+                          <div className="space-y-2">
+                            {feedbacks.map((f) => (
                               <div
-                                key={feedback._id}
-                                className="p-4 bg-slate-900/70 rounded-xl border border-slate-800 hover:border-slate-700 transition"
+                                key={f._id}
+                                className="p-3 rounded-lg border border-border/40 bg-muted/20 text-xs space-y-1"
                               >
-                                <div className="flex items-start justify-between mb-2">
-                                  <div>
-                                    <p className="font-semibold text-white">{feedback.alumni?.alumniName || 'Anonymous'}</p>
-                                    <p className="text-xs text-gray-500">{feedback.alumni?.department}</p>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-1">
-                                    <StarRating rating={feedback.feedbackRating} size="w-4 h-4" />
-                                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                                      <Clock className="w-3 h-3" />
-                                      {formatDate(feedback.createdAt)}
-                                    </div>
-                                  </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-foreground">
+                                    {f.student?.studentName || f.alumni?.alumniName || "Community Member"}
+                                  </span>
+                                  <StarRating rating={f.feedbackRating} size="w-3.5 h-3.5" />
                                 </div>
-                                {feedback.comment && (
-                                  <p className="text-gray-300 text-sm mt-2">{feedback.comment}</p>
-                                )}
+                                <p className="text-muted-foreground leading-relaxed">{f.comment}</p>
                               </div>
                             ))}
                           </div>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
-};
-
-export default Community;
+}

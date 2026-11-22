@@ -5,7 +5,6 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    // Try to load user from localStorage on mount
     try {
       const stored = localStorage.getItem('user');
       return stored ? JSON.parse(stored) : null;
@@ -13,16 +12,20 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
-  const [loading, setLoading] = useState(!user); // if no cached user, we'll load from server
+  const [loading, setLoading] = useState(!user);
 
-  // Load current user from backend using token
   const loadUser = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/api/v1/auth/me'); // backend endpoint to get current user
-      const userData = data?.data?.alumni || data?.alumni || data?.user || data;
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      // Backend /api/v1/auth/me returns the decoded req.user (alumni or student)
+      const { data } = await api.get('/api/v1/auth/me');
+      const rawUser = data?.data?.alumni || data?.alumni || data?.user || data?.data?.student || data;
+      if (rawUser) {
+        const role = rawUser.role || (rawUser.registrationNumber ? 'student' : 'alumni');
+        const userData = { ...rawUser, role };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
     } catch (err) {
       console.error('Failed to load user:', err?.response?.status);
       setUser(null);
@@ -33,7 +36,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Call loadUser on mount if we have a token but no cached user
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && !user) {
@@ -41,16 +43,16 @@ export function AuthProvider({ children }) {
     } else if (!token) {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = (token, userData) => {
     localStorage.setItem('token', token);
     if (userData) {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      const role = userData.role || (userData.registrationNumber ? 'student' : 'alumni');
+      const formattedUser = { ...userData, role };
+      setUser(formattedUser);
+      localStorage.setItem('user', JSON.stringify(formattedUser));
     } else {
-      // If no user data provided, load from server
       loadUser();
     }
   };
@@ -59,11 +61,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    // Optionally call backend logout endpoint to invalidate token/session
   };
 
+  const isStudent = user?.role === 'student' || Boolean(user?.registrationNumber);
+  const isAlumni = user && !isStudent;
+
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loadUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, loadUser, loading, isStudent, isAlumni }}>
       {children}
     </AuthContext.Provider>
   );

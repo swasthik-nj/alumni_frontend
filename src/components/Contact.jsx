@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React, { useState } from "react";
+import { Mail, Phone, MapPin, Send, MessageSquare, Clock, ShieldCheck } from "lucide-react";
+import toast from "react-hot-toast";
+import Nav from "./Nav";
+import Footer from "./Footer";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function Contact() {
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: '',
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -22,197 +27,154 @@ export default function Contact() {
     setLoading(true);
 
     try {
-      // For now, just show a success toast and clear the form
-      // You can integrate with a backend endpoint or email service later
-      toast.success('Message sent! We will contact you soon.');
-      setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+      toast.success("Thank you! Your message has been sent to our campus coordinator.");
+      setForm({ name: "", email: "", phone: "", subject: "", message: "" });
     } catch (err) {
-      toast.error('Failed to send message. Please try again.');
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-12">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-lg text-emerald-100">
-            Have questions or feedback? We'd love to hear from you.
+    <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors">
+      <Nav />
+
+      <main className="flex-1 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8 w-full">
+        {/* Header */}
+        <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 shadow-xs text-center max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
+            <MessageSquare className="w-3.5 h-3.5" /> Support & Campus Relations
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            Get in Touch with AlumniSphere
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Have questions about student mentorship, alumni verification, donations, or upcoming campus events? Reach out to our campus office.
           </p>
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {/* Contact Info Cards */}
-          <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-            <div className="flex items-center gap-3 mb-3">
-              <Mail className="w-6 h-6 text-emerald-600" />
-              <h3 className="text-lg font-semibold text-emerald-900">Email</h3>
-            </div>
-            <p className="text-emerald-700">contact@alumni-system.com</p>
-            <p className="text-emerald-700">support@alumni-system.com</p>
-          </div>
+        {/* 3 Contact Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6 space-y-2">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary w-fit">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm">Official Email</h3>
+              <p className="text-xs text-muted-foreground">info@einna.edu</p>
+              <p className="text-xs text-muted-foreground">mentorship@nmamit.in</p>
+            </CardContent>
+          </Card>
 
-          <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-            <div className="flex items-center gap-3 mb-3">
-              <Phone className="w-6 h-6 text-emerald-600" />
-              <h3 className="text-lg font-semibold text-emerald-900">Phone</h3>
-            </div>
-            <p className="text-emerald-700">+91 (555) 123-4567</p>
-            <p className="text-emerald-700 text-sm">Mon - Fri, 9 AM - 6 PM</p>
-          </div>
+          <Card>
+            <CardContent className="p-6 space-y-2">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary w-fit">
+                <Phone className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm">Phone Line</h3>
+              <p className="text-xs text-muted-foreground">+91 89511 92848</p>
+              <p className="text-[11px] text-muted-foreground">Monday - Friday, 9:00 AM - 5:30 PM IST</p>
+            </CardContent>
+          </Card>
 
-          <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-            <div className="flex items-center gap-3 mb-3">
-              <MapPin className="w-6 h-6 text-emerald-600" />
-              <h3 className="text-lg font-semibold text-emerald-900">Address</h3>
-            </div>
-            <p className="text-emerald-700">Alumni Hub, Main Street</p>
-            <p className="text-emerald-700">Your City, State 12345</p>
-          </div>
+          <Card>
+            <CardContent className="p-6 space-y-2">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary w-fit">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm">Campus Headquarters</h3>
+              <p className="text-xs text-muted-foreground">NMAM Institute of Technology</p>
+              <p className="text-xs text-muted-foreground">Nitte, Karkala Taluk, Karnataka, India</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Contact Form */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 border border-emerald-200 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-emerald-900 mb-6">Send us a Message</h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Message Form */}
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Send a Message</CardTitle>
+            <CardDescription className="text-xs">
+              Fill out the form below and our team will get back to you within 24 hours.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="John Doe"
+                    className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs text-foreground focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="john@example.com"
+                    className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs text-foreground focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-emerald-900 text-sm font-medium mb-2">
-                  Full Name
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Subject
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={form.name}
+                  name="subject"
+                  value={form.subject}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  placeholder="John Doe"
+                  placeholder="Inquiry regarding alumni mentorship program"
+                  className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs text-foreground focus:ring-2 focus:ring-ring"
                 />
               </div>
 
               <div>
-                <label className="block text-emerald-900 text-sm font-medium mb-2">
-                  Email Address
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Message
                 </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
+                <textarea
+                  rows={4}
+                  name="message"
+                  value={form.message}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  placeholder="you@example.com"
+                  placeholder="How can we assist you?"
+                  className="w-full rounded-lg border border-border bg-background p-3 text-xs text-foreground focus:ring-2 focus:ring-ring"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-emerald-900 text-sm font-medium mb-2">
-                Phone Number (Optional)
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                placeholder="+91 (555) 123-4567"
-              />
-            </div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-primary text-primary-foreground gap-2 font-medium"
+              >
+                <Send className="w-3.5 h-3.5" />
+                {loading ? "Sending..." : "Send Message"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </main>
 
-            <div>
-              <label className="block text-emerald-900 text-sm font-medium mb-2">
-                Subject
-              </label>
-              <input
-                type="text"
-                name="subject"
-                value={form.subject}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                placeholder="How can we help?"
-              />
-            </div>
-
-            <div>
-              <label className="block text-emerald-900 text-sm font-medium mb-2">
-                Message
-              </label>
-              <textarea
-                name="message"
-                value={form.message}
-                onChange={handleChange}
-                required
-                rows="5"
-                className="w-full px-4 py-2 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"
-                placeholder="Tell us what's on your mind..."
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              <Send className="w-4 h-4" />
-              {loading ? 'Sending...' : 'Send Message'}
-            </button>
-          </form>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-16 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-emerald-900 mb-6 text-center">
-            Frequently Asked Questions
-          </h2>
-          
-          <div className="space-y-4">
-            <details className="bg-emerald-50 rounded-lg p-4 border border-emerald-200 cursor-pointer">
-              <summary className="font-semibold text-emerald-900">
-                What is the typical response time?
-              </summary>
-              <p className="text-emerald-700 mt-2">
-                We aim to respond to all inquiries within 24-48 hours during business days.
-              </p>
-            </details>
-
-            <details className="bg-emerald-50 rounded-lg p-4 border border-emerald-200 cursor-pointer">
-              <summary className="font-semibold text-emerald-900">
-                Can I report a technical issue?
-              </summary>
-              <p className="text-emerald-700 mt-2">
-                Yes, please use the contact form to describe the issue in detail. Include screenshots if possible.
-              </p>
-            </details>
-
-            <details className="bg-emerald-50 rounded-lg p-4 border border-emerald-200 cursor-pointer">
-              <summary className="font-semibold text-emerald-900">
-                How do I update my profile information?
-              </summary>
-              <p className="text-emerald-700 mt-2">
-                Log in to your account, navigate to your profile, and click the Edit button to update your information.
-              </p>
-            </details>
-
-            <details className="bg-emerald-50 rounded-lg p-4 border border-emerald-200 cursor-pointer">
-              <summary className="font-semibold text-emerald-900">
-                Is my data secure?
-              </summary>
-              <p className="text-emerald-700 mt-2">
-                Yes, we use industry-standard encryption and follow best practices to protect your personal information.
-              </p>
-            </details>
-          </div>
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }

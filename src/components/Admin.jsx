@@ -1,11 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Users, TrendingUp, Calendar, Award, Building2, UserCheck, MessageSquare, Star, BarChart3, DollarSign, Target, Briefcase } from 'lucide-react';
-import api from '@/utils/api';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Users,
+  TrendingUp,
+  Calendar,
+  Award,
+  Building2,
+  UserCheck,
+  MessageSquare,
+  Star,
+  BarChart3,
+  DollarSign,
+  Target,
+  Briefcase,
+  GraduationCap,
+  Sparkles,
+  ChevronRight,
+  ShieldCheck,
+  RefreshCw,
+  Eye,
+  HeartHandshake,
+} from "lucide-react";
+import api from "@/utils/api";
+import AdminStudentManagement from "./AdminStudentManagement";
+import AdminMentorshipAnalytics from "./AdminMentorshipAnalytics";
+import Nav from "./Nav";
+import Footer from "./Footer";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function Admin() {
+  const [activeTab, setActiveTab] = useState("analytics"); // 'analytics' | 'students' | 'mentorship'
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [allAlumni, setAllAlumni] = useState([]);
   const [showAllAlumni, setShowAllAlumni] = useState(false);
 
@@ -28,11 +56,10 @@ export default function Admin() {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
 
         const pickData = (res) => res?.data?.data || res?.data || [];
 
-        // Fetch all data in parallel from dedicated admin endpoints
         const [
           alumniRes,
           topDonorRes,
@@ -45,29 +72,23 @@ export default function Admin() {
           feedbackRes,
           top3Res,
           companyRes,
-          nonAttendRes
+          nonAttendRes,
         ] = await Promise.all([
-          api.get('/api/v1/admin/alumni-before-2015').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/top-donor').catch(() => ({ data: null })),
-          api.get('/api/v1/admin/popular-sessions').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/multi-session-alumni').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/total-donations').catch(() => ({ data: { totalAmount: 0, donorCount: 0 } })),
-          api.get('/api/v1/admin/department-attendance').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/donor-mentors').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/active-mentors').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/low-rating-feedback').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/top-3-sessions').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/same-company-attendees').catch(() => ({ data: [] })),
-          api.get('/api/v1/admin/non-attending-departments').catch(() => ({ data: [] }))
+          api.get("/api/v1/admin/alumni-before-2015").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/top-donor").catch(() => ({ data: null })),
+          api.get("/api/v1/admin/popular-sessions").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/multi-session-alumni").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/total-donations").catch(() => ({ data: { totalAmount: 0, donorCount: 0 } })),
+          api.get("/api/v1/admin/department-attendance").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/donor-mentors").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/active-mentors").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/low-rating-feedback").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/top-3-sessions").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/same-company-attendees").catch(() => ({ data: [] })),
+          api.get("/api/v1/admin/non-attending-departments").catch(() => ({ data: [] })),
         ]);
 
         if (mounted) {
-          console.log('Admin Data:', {
-            alumniRes, topDonorRes, popularRes, multiRes, totalRes, 
-            deptRes, donorMentorRes, mentorRes, feedbackRes, top3Res, 
-            companyRes, nonAttendRes
-          });
-          
           setAlumniBefore2015(pickData(alumniRes));
           setTopDonor(pickData(topDonorRes));
           setPopularSessions(pickData(popularRes));
@@ -81,30 +102,29 @@ export default function Admin() {
           setSameCompanyAttendees(pickData(companyRes));
           setDeptsDidNotAttend(pickData(nonAttendRes));
         }
-
       } catch (e) {
-        if (mounted) setError(e?.response?.data?.message || e?.message || 'Failed to load admin data');
+        if (mounted) setError(e?.response?.data?.message || e?.message || "Failed to load admin data");
       } finally {
         if (mounted) setLoading(false);
       }
     };
     fetchAll();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const fetchAllAlumni = async () => {
     try {
-      setError('');
-      // Try multiple endpoints to improve compatibility
+      setError("");
       const tryEndpoints = [
-        '/api/v1/admin/all-alumni',
-        '/api/v1/alumni',
-        '/api/v1/admin/alumni',
+        "/api/v1/admin/all-alumni",
+        "/api/v1/alumni",
+        "/api/v1/admin/alumni",
       ];
 
       let data = [];
       for (const ep of tryEndpoints) {
-        // eslint-disable-next-line no-await-in-loop
         const res = await api.get(ep).catch(() => null);
         const maybe = res?.data?.data || res?.data;
         if (Array.isArray(maybe) && maybe.length >= 0) {
@@ -116,421 +136,356 @@ export default function Admin() {
       setAllAlumni(Array.isArray(data) ? data : []);
       setShowAllAlumni(true);
     } catch (e) {
-      setError(e?.response?.data?.message || e?.message || 'Failed to load all alumni');
+      setError(e?.response?.data?.message || "Failed to load alumni");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border-b border-cyan-800/30 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                Admin Dashboard
-              </h1>
-              <p className="text-sm text-cyan-300/60 mt-1">Comprehensive analytics and insights</p>
+    <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors">
+      <Nav />
+
+      <main className="flex-1 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full space-y-8">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-border/60">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="outline" className="gap-1.5 text-xs font-normal">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                Administrative Console
+              </Badge>
+              <Badge variant="success" className="text-[10px]">
+                System Online
+              </Badge>
             </div>
-           <div>
-             <Link 
-              to="/" 
-              className="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all shadow-lg shadow-cyan-500/20"
-            >
-              Back to Home
-            </Link>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              Institutional Intelligence & Operations
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              Comprehensive analytics across alumni engagement, student mentorship, donations, and event participation.
+            </p>
+          </div>
+
+          {/* Tab Selector */}
+          <div className="flex items-center p-1 rounded-xl bg-muted border border-border/60">
             <button
-              onClick={fetchAllAlumni}
-              className="ml-3 text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-medium transition-all shadow-lg shadow-violet-500/20"
+              onClick={() => setActiveTab("analytics")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === "analytics"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              View All Alumni
+              Overview & Analytics
             </button>
-           </div>
+            <button
+              onClick={() => setActiveTab("mentorship")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === "mentorship"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Mentorship Intel
+            </button>
+            <button
+              onClick={() => setActiveTab("students")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === "students"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Student Roster
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {showAllAlumni && (
-          <div className="mb-6 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/60 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-cyan-100">All Alumni</h2>
-              <button
-                onClick={() => setShowAllAlumni(false)}
-                className="text-xs px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-cyan-200 border border-slate-700"
-              >
-                Close
-              </button>
-            </div>
-            {allAlumni.length ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                {allAlumni.map((a) => (
-                  <div key={a._id} className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-                    <div className="font-medium text-white">{a.alumniName || a.name}</div>
-                    <div className="text-xs text-cyan-300/70 mt-1">
-                      {a.department} • {a.companyName || a.company}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">{a.email}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-cyan-300/60 text-sm">No alumni found</div>
-            )}
-          </div>
-        )}
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-950/50 border border-red-800/50 text-red-200 backdrop-blur-sm">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive">
             {error}
           </div>
         )}
 
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500/20 border-t-cyan-500"></div>
-            <p className="text-cyan-300 mt-4">Loading analytics...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            
-            {/* 1. Alumni before 2015 */}
-            <MetricCard 
-              title="Alumni Graduated Before 2015" 
-              icon={Users}
-              gradient="from-purple-600 to-pink-600"
-            >
-              {alumniBefore2015.length ? (
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                  {alumniBefore2015.slice(0, 10).map(a => (
-                    <div key={a._id} className="flex justify-between items-center p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-white truncate">{a.alumniName}</div>
-                        <div className="text-xs text-cyan-300/70">{a.department}</div>
-                      </div>
-                      <span className="ml-2 px-2 py-1 rounded bg-purple-500/20 text-purple-300 text-xs font-semibold">
-                        {a.graduationYear}
-                      </span>
-                    </div>
-                  ))}
-                  {alumniBefore2015.length > 10 && (
-                    <div className="text-xs text-cyan-300/50 text-center pt-2">
-                      +{alumniBefore2015.length - 10} more
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <EmptyState message="No alumni found" />
-              )}
-            </MetricCard>
-
-            {/* 2. Top Donor */}
-            <MetricCard 
-              title="Top Donor" 
-              icon={Award}
-              gradient="from-amber-600 to-orange-600"
-            >
-              {topDonor ? (
-                <div className="space-y-3">
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-bold text-xl text-white">{topDonor.alumni?.name || 'Anonymous'}</div>
-                        <div className="text-sm text-amber-300/70 mt-1">{topDonor.alumni?.department}</div>
-                        <div className="text-xs text-amber-300/50 mt-2">
-                          {new Date(topDonor.donationDate).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                          ₹{Number(topDonor.donationAmount).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
+        {/* Tab 1: Overview & Analytics */}
+        {activeTab === "analytics" && (
+          <div className="space-y-8">
+            {/* Top KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Total Donations */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-wider">Endowment Funds</span>
+                    <DollarSign className="w-4 h-4 text-emerald-500" />
                   </div>
-                </div>
-              ) : (
-                <EmptyState message="No donations recorded" />
-              )}
-            </MetricCard>
+                  <CardTitle className="text-3xl font-extrabold mt-1">
+                    ${(totalDonations?.totalAmount || 0).toLocaleString()}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    From <span className="font-semibold text-foreground">{totalDonations?.donorCount || 0}</span> generous contributors
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* 5. Total Donations - Feature Card */}
-            <MetricCard 
-              title="Total Donations" 
-              icon={DollarSign}
-              gradient="from-green-600 to-emerald-600"
-            >
-              <div className="space-y-4">
-                <div className="p-6 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                    ₹{Number(totalDonations.totalAmount || 0).toLocaleString()}
+              {/* Active Mentors (3+) */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-wider">High-Impact Mentors</span>
+                    <Target className="w-4 h-4 text-primary" />
                   </div>
-                  <div className="text-sm text-green-300/70 mt-2">Total Amount Raised</div>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50">
-                  <span className="text-cyan-300/70 text-sm">Total Donors</span>
-                  <span className="text-xl font-bold text-white">{totalDonations.donorCount || 0}</span>
-                </div>
-              </div>
-            </MetricCard>
+                  <CardTitle className="text-3xl font-extrabold mt-1">
+                    {mentors3Plus.length}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    Alumni mentoring 3 or more concurrent students
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* 3. Popular Sessions (>50 attendees) */}
-            <MetricCard 
-              title="Sessions with >50 Attendees" 
-              icon={TrendingUp}
-              gradient="from-blue-600 to-cyan-600"
-            >
-              {popularSessions.length ? (
-                <div className="space-y-2">
-                  {popularSessions.map(s => (
-                    <div key={s._id} className="p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="font-medium text-white">{s.sessionName}</div>
-                          <div className="text-xs text-cyan-300/70 capitalize mt-1">{s.sessionType}</div>
+              {/* Donor-Mentors */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-wider">Dual Contributors</span>
+                    <HeartHandshake className="w-4 h-4 text-indigo-500" />
+                  </div>
+                  <CardTitle className="text-3xl font-extrabold mt-1">
+                    {donorMentors.length}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    Alumni who both donate & actively mentor
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Top Donor Highlight */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-wider">Top Contributor</span>
+                    <Award className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <CardTitle className="text-xl font-bold truncate mt-1">
+                    {topDonor?.donorName || topDonor?.alumniName || "Anonymous Supporter"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold font-mono">
+                    ${(topDonor?.totalDonated || topDonor?.amount || 0).toLocaleString()} donated
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Grid of Analytical Queries */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Alumni Before 2015 */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-primary" />
+                      Senior Alumni (Graduated Before 2015)
+                    </CardTitle>
+                    <Badge variant="secondary" className="text-xs">
+                      {alumniBefore2015.length} alumni
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Experienced alumni with 10+ years in the industry.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {alumniBefore2015.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">No senior alumni records found.</p>
+                    ) : (
+                      alumniBefore2015.map((a, i) => (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border/40 bg-muted/20 text-xs">
+                          <div>
+                            <p className="font-semibold text-foreground">{a.alumniName}</p>
+                            <p className="text-muted-foreground">{a.companyName || "Tech Industry"} • {a.designation || "Executive"}</p>
+                          </div>
+                          <Badge variant="outline" className="font-mono text-[11px]">
+                            Class of {a.graduationYear}
+                          </Badge>
                         </div>
-                        <span className="ml-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">
-                          {s.attendeeCount}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No sessions exceed 50 attendees" />
-              )}
-            </MetricCard>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* 4. Multi-session Alumni */}
-            <MetricCard 
-              title="Alumni with Multiple Registrations" 
-              icon={UserCheck}
-              gradient="from-indigo-600 to-purple-600"
-            >
-              {multiRegistrants.length ? (
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                  {multiRegistrants.slice(0, 10).map((m, idx) => (
-                    <div key={m._id || idx} className="flex justify-between items-center p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-white truncate">{m.alumniName}</div>
-                        <div className="text-xs text-indigo-300/70">{m.department || m.email}</div>
-                      </div>
-                      <span className="ml-2 px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 text-xs font-semibold">
-                        {m.sessionCount} sessions
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No multi-registrants found" />
-              )}
-            </MetricCard>
-
-            {/* 6. Department Attendance */}
-            <MetricCard 
-              title="Top Departments by Attendance" 
-              icon={Building2}
-              gradient="from-rose-600 to-pink-600"
-            >
-              {deptMostAttendees.length ? (
-                <div className="space-y-2">
-                  {deptMostAttendees.map((dept, idx) => (
-                    <div key={dept.department || idx} className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500/20 to-pink-500/20 flex items-center justify-center">
-                        <span className="text-sm font-bold text-rose-300">#{idx + 1}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-white truncate">{dept.department}</div>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-sm font-semibold">
-                        {dept.attendeeCount}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No department data available" />
-              )}
-            </MetricCard>
-
-            {/* 10. Top 3 Sessions */}
-            <MetricCard 
-              title="Top 3 Sessions by Attendance" 
-              icon={BarChart3}
-              gradient="from-teal-600 to-cyan-600"
-            >
-              {top3Sessions.length ? (
-                <div className="space-y-3">
-                  {top3Sessions.map((s, idx) => (
-                    <div key={s._id} className="p-4 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition border border-teal-500/20">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center font-bold text-white text-lg">
-                          {idx + 1}
+              {/* Popular Campus Sessions */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      Most Popular Campus Events & Sessions
+                    </CardTitle>
+                    <Badge variant="accent" className="text-xs">
+                      Trending
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Top sessions by total student & alumni registrations.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {popularSessions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">No session data recorded.</p>
+                    ) : (
+                      popularSessions.map((s, i) => (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border/40 bg-muted/20 text-xs">
+                          <div>
+                            <p className="font-semibold text-foreground">{s.title || s.sessionTitle || "Event"}</p>
+                            <p className="text-muted-foreground">{s.date || "Scheduled"} • {s.department || "Campus-wide"}</p>
+                          </div>
+                          <Badge variant="secondary" className="font-mono">
+                            {s.registrationCount || s.count || 0} attendees
+                          </Badge>
                         </div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-white">{s.sessionName}</div>
-                          <div className="text-xs text-teal-300/70 capitalize mt-1">{s.sessionType}</div>
-                          <div className="mt-2 text-2xl font-bold text-teal-300">{s.attendeeCount} attendees</div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Multi-Session Registrants */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="w-4 h-4 text-primary" />
+                      Active Event Champions (Multi-Registrants)
+                    </CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      {multiRegistrants.length} members
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Alumni who have registered for multiple institutional workshops.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {multiRegistrants.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">No multi-event attendees found.</p>
+                    ) : (
+                      multiRegistrants.map((m, i) => (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border/40 bg-muted/20 text-xs">
+                          <div>
+                            <p className="font-semibold text-foreground">{m.alumniName}</p>
+                            <p className="text-muted-foreground">{m.email}</p>
+                          </div>
+                          <Badge variant="success" className="text-[11px] font-mono">
+                            {m.eventCount || m.sessionCount || 2}+ events
+                          </Badge>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No session data available" />
-              )}
-            </MetricCard>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* 7. Donor-Mentors */}
-            <MetricCard 
-              title="Alumni Who Are Both Donors & Mentors" 
-              icon={Target}
-              gradient="from-violet-600 to-purple-600"
-            >
-              {donorMentors.length ? (
-                <div className="space-y-2 pt-3 max-h-94 overflow-y-auto pr scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                  {donorMentors.map(a => (
-                    <div key={a._id} className="p-3 h-full  rounded-lg bg-slate-800 transition border-l-2 border-violet-500">
-                      <div className="font-medium text-white">{a.alumniName}</div>
-                      <div className="text-xs text-violet-300/70 mt-1">{a.department} • {a.companyName}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No alumni found in both categories" />
-              )}
-            </MetricCard>
-
-            {/* 8. Active Mentors (>3 students) */}
-            <MetricCard 
-              title="Mentors Guiding >3 Students" 
-              icon={Users}
-              gradient="from-sky-600 to-blue-600"
-            >
-              {mentors3Plus.length ? (
-                <div className="space-y-2">
-                  {mentors3Plus.map(m => (
-                    <div key={m._id} className="flex justify-between items-center p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex-1">
-                        <div className="font-medium text-white">{m.alumniName}</div>
-                        <div className="text-xs text-sky-300/70 mt-1">{m.department}</div>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-sm font-semibold">
-                        {m.studentCount} students
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No active mentors found" />
-              )}
-            </MetricCard>
-
-            {/* 9. Low Rating Feedback */}
-            <MetricCard 
-              title="Feedback Below 3 Rating" 
-              icon={Star}
-              gradient="from-red-600 to-rose-600"
-            >
-              {lowFeedbackAlumni.length ? (
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                  {lowFeedbackAlumni.map((f, idx) => (
-                    <div key={f._id || idx} className="p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium text-white text-sm">{f.alumni?.name}</div>
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 text-red-400 fill-red-400" />
-                          <span className="text-red-300 text-xs font-semibold">{f.feedbackRating}</span>
+              {/* Department Attendance Ranking */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-primary" />
+                      Department Participation in Sessions
+                    </CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      Academic Ranking
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Departments with highest participation numbers.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {deptMostAttendees.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">No department data recorded.</p>
+                    ) : (
+                      deptMostAttendees.map((d, i) => (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border/40 bg-muted/20 text-xs">
+                          <span className="font-medium text-foreground">{d.department || d._id || "Department"}</span>
+                          <Badge variant="secondary" className="font-mono">
+                            {d.attendeeCount || d.count || 0} participants
+                          </Badge>
                         </div>
-                      </div>
-                      <div className="text-xs text-red-300/70">{f.session?.sessionName}</div>
-                      {f.comment && (
-                        <div className="text-xs text-slate-400 mt-2 italic">"{f.comment}"</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="No low ratings found" />
-              )}
-            </MetricCard>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* 11. Same Company Attendees */}
-            <MetricCard 
-              title="Same Company Alumni Groups" 
-              icon={Briefcase}
-              gradient="from-orange-600 to-amber-600"
-            >
-              {sameCompanyAttendees.length ? (
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                  {sameCompanyAttendees.slice(0, 8).map((group, idx) => (
-                    <div key={idx} className="p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-semibold text-white truncate flex-1">{group.companyName}</div>
-                        <span className="ml-2 px-2 py-1 rounded bg-orange-500/20 text-orange-300 text-xs font-semibold">
-                          {group.count}
-                        </span>
-                      </div>
-                      <div className="text-xs text-orange-300/60">
-                        {group.alumni.slice(0, 3).map(a => a.alumniName).join(', ')}
-                        {group.alumni.length > 3 && ` +${group.alumni.length - 3} more`}
-                      </div>
-                    </div>
-                  ))}
+            {/* All Alumni Directory Viewer Shortcut */}
+            <Card>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-base">Complete Alumni Network Records</CardTitle>
+                  <CardDescription className="text-xs">
+                    Quickly inspect all registered alumni records without leaving the operations console.
+                  </CardDescription>
                 </div>
-              ) : (
-                <EmptyState message="No company groups found" />
-              )}
-            </MetricCard>
+                <Button onClick={fetchAllAlumni} size="sm" variant="outline" className="gap-2 shrink-0">
+                  <Eye className="w-4 h-4" /> Load Master Directory
+                </Button>
+              </CardHeader>
 
-            {/* 12. Non-attending Departments */}
-            <MetricCard 
-              title="Departments with No Attendance (2025)" 
-              icon={MessageSquare}
-              gradient="from-slate-600 to-gray-600"
-            >
-              {deptsDidNotAttend.length ? (
-                <div className="space-y-1 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-slate-800">
-                  {deptsDidNotAttend.map((dept, idx) => (
-                    <div key={idx} className="px-3 py-2 rounded-lg bg-slate-800/30 text-slate-300 text-sm">
-                      {typeof dept === 'string' ? dept : dept.department || 'Unknown'}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState message="All departments have attendance" />
+              {showAllAlumni && (
+                <CardContent>
+                  <div className="overflow-x-auto max-h-80 border rounded-lg border-border/60">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-muted/50 border-b border-border/60 text-muted-foreground uppercase tracking-wider">
+                        <tr>
+                          <th className="py-2.5 px-4 font-semibold">Name</th>
+                          <th className="py-2.5 px-4 font-semibold">Email</th>
+                          <th className="py-2.5 px-4 font-semibold">Department</th>
+                          <th className="py-2.5 px-4 font-semibold">Year</th>
+                          <th className="py-2.5 px-4 font-semibold">Company & Role</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/40">
+                        {allAlumni.map((alumnus) => (
+                          <tr key={alumnus._id} className="hover:bg-muted/30 transition-colors">
+                            <td className="py-2 px-4 font-semibold text-foreground">{alumnus.alumniName}</td>
+                            <td className="py-2 px-4 text-muted-foreground">{alumnus.email}</td>
+                            <td className="py-2 px-4">{alumnus.department}</td>
+                            <td className="py-2 px-4 font-mono">{alumnus.graduationYear}</td>
+                            <td className="py-2 px-4 text-muted-foreground">{alumnus.companyName || "—"} ({alumnus.designation || "—"})</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
               )}
-            </MetricCard>
-
+            </Card>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
 
-function MetricCard({ title, icon: Icon, gradient, children }) {
-  return (
-    <div className="relative group">
-      <div className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}></div>
-      <div className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-cyan-800/30">
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${gradient} bg-opacity-20`}>
-            <Icon className="w-5 h-5 text-cyan-300" />
-          </div>
-          <h2 className="text-base font-semibold text-cyan-100 flex-1">{title}</h2>
-        </div>
-        <div className="min-h-[120px]">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
+        {/* Tab 2: Mentorship Intelligence */}
+        {activeTab === "mentorship" && <AdminMentorshipAnalytics />}
 
-function EmptyState({ message }) {
-  return (
-    <div className="flex items-center justify-center h-32 text-cyan-300/40 text-sm">
-      {message}
+        {/* Tab 3: Student Management */}
+        {activeTab === "students" && <AdminStudentManagement />}
+      </main>
+
+      <Footer />
     </div>
   );
 }
