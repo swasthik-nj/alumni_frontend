@@ -47,6 +47,7 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
   const pollIntervalRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isTypingEmittedRef = useRef(false);
+  const lastTypingPingRef = useRef(0);
 
   const isModalMode = Boolean(onClose);
   const currentUserId = String(user?._id || user?.id || "");
@@ -81,10 +82,10 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
   useEffect(() => {
     fetchConversation();
 
-    // Real-time polling every 2.5 seconds for messages and typing indicators
+    // Real-time WhatsApp-like fast polling every 1.2 seconds for messages & typing status
     pollIntervalRef.current = setInterval(() => {
       fetchConversation(true);
-    }, 2500);
+    }, 1200);
 
     return () => {
       if (pollIntervalRef.current) {
@@ -109,8 +110,11 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
     setInputText(val);
 
     if (val.trim()) {
-      if (!isTypingEmittedRef.current) {
+      const now = Date.now();
+      // Emit typing immediately or refresh every 2 seconds while actively typing
+      if (!isTypingEmittedRef.current || now - lastTypingPingRef.current > 2000) {
         isTypingEmittedRef.current = true;
+        lastTypingPingRef.current = now;
         api.post(`/api/v1/messages/request/${requestId}/typing`, { isTyping: true }).catch(() => {});
       }
 
@@ -215,9 +219,18 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
                 {mentorshipInfo?.targetDomain || "Active Mentorship"}
               </Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Connected 1-on-1 Workspace
+            <p className="text-[11px] flex items-center gap-1.5">
+              {isPeerTyping ? (
+                <span className="text-emerald-500 font-semibold animate-pulse flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  typing...
+                </span>
+              ) : (
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Connected 1-on-1 Workspace
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -266,8 +279,20 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
           </div>
         ) : (
           messages.map((msg, index) => {
-            const isMe = String(msg.sender?._id || msg.sender) === currentUserId;
-            const senderName = isMe ? (user?.name || user?.username || "You") : (msg.senderName || partnerName);
+            const msgSenderId = String(msg.senderId || msg.sender?._id || msg.sender || "");
+            const myUserId = String(user?._id || user?.id || "");
+            const myName = String(user?.alumniName || user?.studentName || user?.name || user?.username || "").trim().toLowerCase();
+            const msgSenderName = String(msg.senderName || "").trim().toLowerCase();
+            const partnerLower = String(partnerName || "").trim().toLowerCase();
+
+            // 100% reliable detection for 1-to-1 conversation
+            const isMe = Boolean(
+              (myUserId && msgSenderId && msgSenderId === myUserId) ||
+              (myName && msgSenderName && msgSenderName === myName) ||
+              (msgSenderName && partnerLower && msgSenderName !== partnerLower)
+            );
+
+            const displayName = isMe ? "You" : (msg.senderName || partnerName);
             const timeStr = formatTime(msg.createdAt);
 
             if (isMe) {
@@ -299,7 +324,7 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
                   {/* Avatar Right */}
                   <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1">
                     <AvatarFallback className="bg-primary/20 text-primary font-semibold text-xs">
-                      {getInitials(user?.name || user?.username || "You")}
+                      {getInitials(user?.alumniName || user?.studentName || user?.name || user?.username || "You")}
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -311,14 +336,14 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
                 {/* Avatar Left */}
                 <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1">
                   <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xs">
-                    {getInitials(senderName)}
+                    {getInitials(displayName)}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex flex-col gap-1 w-full max-w-[320px] sm:max-w-[460px]">
                   {/* Header: Name and Time */}
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs font-semibold text-foreground">{senderName}</span>
+                    <span className="text-xs font-semibold text-foreground">{displayName}</span>
                     <span className="text-[11px] font-normal text-muted-foreground">{timeStr}</span>
                   </div>
 
@@ -335,26 +360,26 @@ export default function MentorshipChat({ requestId: propRequestId, onClose }) {
           })
         )}
 
-        {/* Real-time Typing Indicator */}
+        {/* WhatsApp-style Real-time Typing Indicator */}
         {isPeerTyping && (
           <div className="flex items-start gap-2.5 animate-fadeIn">
-            <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1">
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+            <Avatar className="w-8 h-8 rounded-full shrink-0 mt-1 ring-2 ring-emerald-500/20">
+              <AvatarFallback className="bg-emerald-500/10 text-emerald-500 font-bold text-xs">
                 {getInitials(peerTypingName || partnerName)}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1 max-w-[320px]">
               <div className="flex items-center space-x-2">
                 <span className="text-xs font-semibold text-foreground">{peerTypingName || partnerName}</span>
-                <span className="text-[11px] text-primary font-medium">typing...</span>
+                <span className="text-[11px] text-emerald-500 font-semibold animate-pulse">typing...</span>
               </div>
-              <div className="flex items-center gap-1.5 px-4 py-3 bg-card border border-border/70 rounded-2xl rounded-tl-none shadow-xs w-fit">
-                <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="flex items-center gap-1.5 px-4 py-3 bg-muted/60 dark:bg-card border border-border/70 rounded-2xl rounded-tl-none shadow-xs w-fit">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
-              <span className="text-[11px] text-muted-foreground italic">
-                {peerTypingName || partnerName} is typing a message...
+              <span className="text-[11px] text-emerald-500 font-medium italic">
+                {peerTypingName || partnerName} is typing...
               </span>
             </div>
           </div>

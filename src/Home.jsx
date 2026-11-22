@@ -24,6 +24,7 @@ import Footer from "./components/Footer";
 import { Button } from "./components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/ui/card";
 import { Badge } from "./components/ui/badge";
+import HeroParallax from "./components/HeroParallax";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -163,60 +164,84 @@ export default function Home() {
       <Nav />
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative overflow-hidden border-b border-border/50 py-16 sm:py-24 lg:py-32">
+      <section ref={heroRef} className="relative overflow-hidden border-b border-border/50 py-12 sm:py-16 lg:py-20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl">
-            {/* Pill */}
-            <div className="hero-badge inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3.5 py-1 text-xs text-muted-foreground shadow-xs backdrop-blur-md mb-6">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-medium text-foreground">AlumniSphere 2.0</span>
-              <span className="text-border">|</span>
-              <span>Next-Gen Networking & Mentorship</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+            {/* Left Column (Hero Content) */}
+            <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-center">
+              {/* Pill */}
+              <div className="hero-badge inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3.5 py-1 text-xs text-muted-foreground shadow-xs backdrop-blur-md mb-6 w-fit">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-medium text-foreground">AlumniSphere 2.0</span>
+                <span className="text-border">|</span>
+                <span>Next-Gen Networking & Mentorship</span>
+              </div>
+
+              <h1 className="hero-title text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-foreground leading-[1.14]">
+                Empowering graduates and students to{" "}
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 dark:from-blue-400 dark:via-indigo-300 dark:to-cyan-300 bg-clip-text text-transparent">
+                  grow together.
+                </span>
+              </h1>
+
+              <p className="hero-text mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Connect directly with industry alumni for personalized mentorship, career roadmaps,
+                exclusive campus opportunities, and enduring professional relationships.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                {user ? (
+                  isStudent ? (
+                    <Button asChild size="lg" className="hero-btn gap-2 bg-primary text-primary-foreground shadow-sm">
+                      <Link to="/student/mentorship-dashboard">
+                        <Sparkles className="h-4 w-4" />
+                        Go to Student Dashboard
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button asChild size="lg" className="hero-btn gap-2 bg-primary text-primary-foreground shadow-sm">
+                      <Link to="/personal">
+                        <Briefcase className="h-4 w-4" />
+                        Go to Alumni Dashboard
+                      </Link>
+                    </Button>
+                  )
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="hero-btn gap-2 bg-primary text-primary-foreground shadow-sm">
+                      <Link to="/register">
+                        Join the Network
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg" className="hero-btn">
+                      <Link to="/mentorship/explore">Explore Mentors</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {/* Social Proof Indicator */}
+              <div className="hero-text mt-10 pt-6 border-t border-border/40 flex items-center gap-6 text-xs text-muted-foreground">
+                <div className="flex -space-x-2">
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-background bg-blue-600 text-white font-bold text-[11px]">RS</div>
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-background bg-indigo-600 text-white font-bold text-[11px]">AC</div>
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-background bg-purple-600 text-white font-bold text-[11px]">PN</div>
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-background bg-slate-700 text-slate-100 font-bold text-[11px]">+1k</div>
+                </div>
+                <div>
+                  <div className="flex items-center text-amber-400 font-semibold text-xs">
+                    {"★★★★★"} <span className="ml-1 text-foreground">4.9 / 5.0</span>
+                  </div>
+                  <p className="text-[11px]">Over 2,500+ successful student sessions</p>
+                </div>
+              </div>
             </div>
 
-            <h1 className="hero-title text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15]">
-              Empowering graduates and students to{" "}
-              <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                grow together.
-              </span>
-            </h1>
-
-            <p className="hero-text mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed">
-              Connect directly with industry alumni for personalized mentorship, career roadmaps,
-              exclusive campus opportunities, and enduring professional relationships.
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              {user ? (
-                isStudent ? (
-                  <Button asChild size="lg" className="hero-btn gap-2 bg-primary text-primary-foreground shadow-sm">
-                    <Link to="/student/mentorship-dashboard">
-                      <Sparkles className="h-4 w-4" />
-                      Go to Student Dashboard
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button asChild size="lg" className="hero-btn gap-2 bg-primary text-primary-foreground shadow-sm">
-                    <Link to="/personal">
-                      <Briefcase className="h-4 w-4" />
-                      Go to Alumni Dashboard
-                    </Link>
-                  </Button>
-                )
-              ) : (
-                <>
-                  <Button asChild size="lg" className="hero-btn gap-2 bg-primary text-primary-foreground shadow-sm">
-                    <Link to="/register">
-                      Join the Network
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg" className="hero-btn">
-                    <Link to="/mentorship/explore">Explore Mentors</Link>
-                  </Button>
-                </>
-              )}
+            {/* Right Column (Hero Parallax Showcase) */}
+            <div className="lg:col-span-6 xl:col-span-7 relative w-full overflow-hidden">
+              <HeroParallax />
             </div>
           </div>
         </div>
