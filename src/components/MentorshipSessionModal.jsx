@@ -124,6 +124,21 @@ export default function MentorshipSessionModal({
         agendaTopics: form.agendaTopics,
       });
 
+      // Post notification message directly into chat feed so alumni is immediately alerted
+      try {
+        const formattedDate = new Date(form.sessionDate).toLocaleString([], {
+          dateStyle: "medium",
+          timeStyle: "short",
+        });
+        const meetInfo = form.meetingLinkOrLocation ? `\n🔗 Meeting Link: ${form.meetingLinkOrLocation.trim()}` : "";
+        await api.post("/api/v1/messages", {
+          mentorshipRequestId: reqId,
+          content: `📅 Mentorship Session Scheduled:\n📌 Topic: ${form.title.trim()}\n🕒 When: ${formattedDate} (${form.durationMinutes || 45} mins)${meetInfo}`,
+        });
+      } catch (err) {
+        // Non-blocking notification
+      }
+
       toast.success("Mentorship session scheduled successfully!");
       setShowScheduleForm(false);
       setForm({
@@ -149,6 +164,17 @@ export default function MentorshipSessionModal({
       setActionLoadingId(sessionId);
       await api.put(`/api/v1/mentorship-sessions/${sessionId}/status`, { status });
       toast.success(`Session marked as ${status.toLowerCase()}!`);
+
+      // Broadcast update to chat
+      try {
+        await api.post("/api/v1/messages", {
+          mentorshipRequestId: reqId,
+          content: `✅ Session status updated to: ${status.toUpperCase()}`,
+        });
+      } catch (err) {
+        // Non-blocking
+      }
+
       fetchSessions();
       if (onSessionCreated) onSessionCreated();
     } catch (err) {
